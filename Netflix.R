@@ -12,7 +12,6 @@ l <- list(color = toRGB("grey"), width = 0.5)
 g <- list(
   showframe = FALSE,
   showcoastlines = FALSE,
-  colorbar = 'bottom',
   projection = list(type = 'mercator')
 )
 
@@ -22,14 +21,14 @@ fig <- fig %>% add_trace(
   text = ~Country, locations = ~code, marker = list(line = l)
 )
 
-fig <- fig %>% colorbar(title = 'Titles', x = 0.5, y=0.33, orientation="h", tickangle="-45", len = ".9",
+fig <- fig %>% colorbar(title = 'Titles', orientation="v", tickangle="0", len = ".8",
                         tickvals = c(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
                         ticktext = c('Less than 100','200', '300', '400', '500', '600', '700', '800', '900','More than 1000'))
 fig <- fig %>% layout(
-  title = 'Number of Titles Available on Netflix by Country',
   geo = g
 )
 
 fig
+
 
 
