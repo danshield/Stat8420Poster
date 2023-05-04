@@ -73,7 +73,8 @@ server <- function(input, output) {
     fig <- plot_geo(chart, width = 800, height = 800) %>%
       add_trace(
         z = ~available, color = ~available, colors = 'Blues',
-        text = ~Country, locations = ~code, marker = list(line = l)
+        text = ~Country, locations = ~code, marker = list(line = l),
+        showscale = FALSE
       ) %>%
       layout(
         geo = g,
@@ -81,7 +82,8 @@ server <- function(input, output) {
         modebar = FALSE
 #        width = 600, 
 #        height = 600
-      )
+      ) %>%
+      config(displayModeBar = FALSE)
   })
   
 }
