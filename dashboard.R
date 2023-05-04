@@ -17,6 +17,9 @@ mapData <- read.csv('choropleth.csv')
 mapData$Total[mapData$Total <= 10] <- 10
 mapData$Total[mapData$Total >= 1000] <- 1000
 
+minYear <- 2008
+maxYear <- 2020
+
 ui <- dashboardPage(
   dashboardHeader(title = "My Data Dashboard"),
   dashboardSidebar(
@@ -29,15 +32,20 @@ ui <- dashboardPage(
     tabItems(
       # First tab content
       tabItem(tabName = "Netflix",
-              box(plotlyOutput("netflix"),
-                height = '80%',
-                width = '100%'
+              fluidRow(
+                width = 12,
+                box(sliderInput("slider", "Countries with Netflix available by year",
+                                sep = '',
+                                min = minYear, 
+                                max = maxYear,
+                                value = minYear), 
+                    width='90%')),
+              fluidRow(
+                width = 12,
+                plotlyOutput("netflix"),
+                  height = '100%',
+                  width = '90%'
               )
-              #fluidRow(
-              #  box(plotlyOutput("netflix")),
-              #      width = '100%',
-              #      height = '80%'
-              #)
       )
     )
   )
@@ -50,24 +58,32 @@ server <- function(input, output) {
   
    # specify map projection/options
    g <- list(
-    showframe = FALSE,
+    showframe = TRUE,
     showcoastlines = FALSE,
     projection = list(type = 'mercator')
   )
    
   output$netflix <- renderPlotly({
-    fig <- plot_geo(mapData) %>%
+#    data <- mapData %>%
+#            filter(Introduced <= input$slider)
+    
+    chart <- data %>%
+      mutate(available = ifelse(Introduced <= input$slider, 1, 0))
+    
+    fig <- plot_geo(chart, width = 800, height = 800) %>%
       add_trace(
-        z = ~Total, color = ~Total, colors = 'Blues',
+        z = ~available, color = ~available, colors = 'Blues',
         text = ~Country, locations = ~code, marker = list(line = l)
       ) %>%
-      colorbar(title = 'Titles', orientation="v", tickangle="0", len = ".8",
-                            tickvals = c(100, 200, 300, 400, 500, 600, 700, 800, 900, 1000),
-                            ticktext = c('Less than 100','200', '300', '400', '500', '600', '700', '800', '900','More than 1000')) %>%
       layout(
-        geo = g
+        geo = g,
+        showlegend = FALSE,
+        modebar = FALSE
+#        width = 600, 
+#        height = 600
       )
   })
+  
 }
 
 shinyApp(ui, server)
