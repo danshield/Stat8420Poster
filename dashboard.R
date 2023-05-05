@@ -21,10 +21,10 @@ minYear <- 2008
 maxYear <- 2020
 
 ui <- dashboardPage(
-  dashboardHeader(title = "My Data Dashboard"),
+  dashboardHeader(title = "Stats 8426"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("My control Center", tabName = "Netflix", 
+      menuItem("Global Domination", tabName = "Netflix", 
                icon = icon("dashboard"))
     )    
   ),
@@ -70,7 +70,7 @@ server <- function(input, output) {
     chart <- data %>%
       mutate(available = ifelse(Introduced <= val, 1, 0))
     
-    fig <- plot_geo(chart, width = 800, height = 800) %>%
+    fig <- plot_geo(chart, width = 800, height = 700, hoverinfo = 'text') %>%
       add_trace(
         z = ~available, color = ~Introduced, colors = 'Blues',
         text = ~Country, locations = ~code, marker = list(line = l),
@@ -79,9 +79,8 @@ server <- function(input, output) {
       layout(
         geo = g,
         showlegend = FALSE,
-        modebar = FALSE
-#        width = 600, 
-#        height = 600
+        modebar = FALSE,
+        title = list("foo")
       ) %>%
       config(displayModeBar = FALSE)
   })
