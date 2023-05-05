@@ -38,7 +38,9 @@ ui <- dashboardPage(
                                 sep = '',
                                 min = minYear, 
                                 max = maxYear,
-                                value = minYear), 
+                                value = minYear,
+                                ticks = TRUE,
+                                animate = TRUE), 
                     width='90%')),
               fluidRow(
                 width = 12,
@@ -64,15 +66,13 @@ server <- function(input, output) {
   )
    
   output$netflix <- renderPlotly({
-#    data <- mapData %>%
-#            filter(Introduced <= input$slider)
-    
+    val <- input$slider
     chart <- data %>%
-      mutate(available = ifelse(Introduced <= input$slider, 1, 0))
+      mutate(available = ifelse(Introduced <= val, 1, 0))
     
     fig <- plot_geo(chart, width = 800, height = 800) %>%
       add_trace(
-        z = ~available, color = ~available, colors = 'Blues',
+        z = ~available, color = ~Introduced, colors = 'Blues',
         text = ~Country, locations = ~code, marker = list(line = l),
         showscale = FALSE
       ) %>%
