@@ -67,7 +67,7 @@ server <- function(input, output) {
    
   output$netflix <- renderPlotly({
     val <- input$slider
-    chart <- data %>%
+    chart <- mapData %>%
       mutate(available = ifelse(Introduced <= val, 1, 0))
     
     fig <- plot_geo(chart, width = 800, height = 700, hoverinfo = 'text') %>%

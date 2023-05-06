@@ -6,12 +6,6 @@ library(ggmap)
 library(plotly)
 library(usmap)
 
-# To create and save omaha map data from goole
-# omaps <-  get_map(location = 'Omaha', maptype = 'roadmap', zoom = 11, color='bw')
-# save(omaps, file = "omaps.RData") # get_map(location = 'Omaha', source = 'stamen', maptype = 'toner')
-# Once saved, we don't need to connect google, we can just load
-# I have done this step already. Just get the omaps.RData from canvas
-
 netflixData <- read.csv('netflix_titles.csv')
 mapData <- read.csv('choropleth.csv')
 mapData$Total[mapData$Total <= 10] <- 10
@@ -67,7 +61,8 @@ server <- function(input, output) {
    
   output$netflix <- renderPlotly({
     val <- input$slider
-    chart <- data %>%
+    
+    chart <- mapData %>%
       mutate(available = ifelse(Introduced <= val, 1, 0))
     
     fig <- plot_geo(chart, width = 800, height = 700, hoverinfo = 'text') %>%
