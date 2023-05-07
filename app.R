@@ -5,20 +5,53 @@ library(ggplot2)
 library(ggmap)
 library(plotly)
 library(usmap)
+library(DT)
+library(shinyWidgets)
 
-netflixData <- read.csv('netflix_titles.csv')
+netflixData <- read.csv('updated.csv')
+netflixData$listed_in <- sapply(strsplit(netflixData$listed_in, ','), as.list)
+netflixData$listed_in <- sapply(netflixData$listed_in, function(x) {trimws(x)})
+
 mapData <- read.csv('choropleth.csv')
 mapData$Total[mapData$Total <= 10] <- 10
 mapData$Total[mapData$Total >= 1000] <- 1000
 
+
+          
 minYear <- 2008
 maxYear <- 2020
+
+filterGenres <- function(column) {
+  genres <- unique(unlist(column))
+  genres <- lapply(trimws(genres), as.character)
+  unique(sort(unlist(genres)))
+}
+
+getGenres <- function(typ) {
+  column <- netflixData %>%
+              filter(type == typ) %>%
+              select(listed_in)
+  filterGenres(column$listed_in)
+}
+
+tvGenres <- getGenres('TV Show')
+movieGenres <- getGenres('Movie')
+
+movieRatings <- netflixData %>%
+                  filter(type == 'Movie') %>%
+                  select(rating) %>%
+                  distinct(rating)
+
 
 ui <- dashboardPage(
   dashboardHeader(title = "Stats 8426"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Global Domination", tabName = "Netflix", 
+               icon = icon("dashboard")),
+      menuItem("Television", tabName = "TV", 
+               icon = icon("dashboard")),
+      menuItem("Movies", tabName = "Movies", 
                icon = icon("dashboard"))
     )    
   ),
@@ -42,22 +75,38 @@ ui <- dashboardPage(
                   height = '100%',
                   width = '90%'
               )
+      ),
+      tabItem(tabName="TV",
+              fluidRow(box(
+                selectInput('tvGenre', "Genre", choices = tvGenres)
+              )),
+              fluidRow(width=12, DT::dataTableOutput('tv'))
+              ),
+      tabItem(tabName="Movies",
+              fluidRow(box(
+                selectInput("movieRating", "Rating", choices = movieRatings)
+                )
+              ),
+              fluidRow(width=12, DT::dataTableOutput('movie'))
+              )
       )
     )
-  )
 )
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
    #light grey boundaries
    l <- list(color = toRGB("grey"), width = 0.5)
   
    # specify map projection/options
    g <- list(
-    showframe = TRUE,
-    showcoastlines = FALSE,
-    projection = list(type = 'mercator')
-  )
+     showframe = TRUE,
+     showcoastlines = FALSE,
+     projection = list(type = 'mercator')
+   )
+   
+   movieRatings <- netflixData %>%
+     filter(type == 'Movie')
    
   output$netflix <- renderPlotly({
     val <- input$slider
@@ -78,6 +127,22 @@ server <- function(input, output) {
         title = list("foo")
       ) %>%
       config(displayModeBar = FALSE)
+  })
+  
+  output$tv <- DT::renderDataTable({
+    netflixData %>%
+      filter(type == 'TV Show') %>%
+      filter(sapply(listed_in, function(x) { any(input$tvGenre %in% x)})) %>%
+      select(c(title, rating, release_year, description)) %>%
+      arrange(title)
+  })
+  
+  output$movie <- DT::renderDataTable({
+    netflixData %>%
+      filter(type == 'Movie') %>%
+      filter(rating == input$movieRating) %>%
+      select(c(title, rating, release_year, description)) %>%
+      arrange(title)
   })
   
 }
